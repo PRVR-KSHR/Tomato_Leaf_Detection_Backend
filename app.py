@@ -102,8 +102,8 @@ class ViTAgriNet(nn.Module):
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = ViTAgriNet(num_classes=4, pretrained=False)
 
-# Load the trained weights
-model_path = os.path.join(os.path.dirname(__file__), '..', 'ViTAgriNet_best.pth')
+# Load the trained weights (model file should be in same directory as app.py)
+model_path = os.path.join(os.path.dirname(__file__), 'ViTAgriNet_best.pth')
 try:
     model.load_state_dict(torch.load(model_path, map_location=device))
     print("Model loaded successfully!")
