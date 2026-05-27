@@ -7,6 +7,9 @@ from PIL import Image
 import io
 import os
 import timm
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
@@ -180,4 +183,5 @@ def health():
 if __name__ == '__main__':
     print(f"Using device: {device}")
     print(f"Model classes: {CLASSES}")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
