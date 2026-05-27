@@ -98,26 +98,38 @@ class ViTAgriNet(nn.Module):
         
         return x
 
-# Load the model
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = ViTAgriNet(num_classes=4, pretrained=False)
+# Load the model (lazy loading - only load on first prediction)
+device = torch.device('cpu')  # Use CPU only to save memory
+model = None
+model_loaded = False
 
-# Load the trained weights (model file should be in same directory as app.py)
-model_path = os.path.join(os.path.dirname(__file__), 'ViTAgriNet_best.pth')
-try:
-    model.load_state_dict(torch.load(model_path, map_location=device))
-    print("Model loaded successfully!")
-except Exception as e:
-    print(f"Error loading model: {e}")
-    print("Attempting to load with weights_only=True...")
+def load_model():
+    global model, model_loaded, device
+    if model_loaded:
+        return model
+    
+    print("Loading ViTAgriNet model...")
+    model = ViTAgriNet(num_classes=4, pretrained=False)
+    
+    # Load the trained weights (model file should be in same directory as app.py)
+    model_path = os.path.join(os.path.dirname(__file__), 'ViTAgriNet_best.pth')
     try:
-        model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
-        print("Model loaded successfully with weights_only=True!")
-    except Exception as e2:
-        print(f"Failed to load model: {e2}")
-
-model.to(device)
-model.eval()
+        model.load_state_dict(torch.load(model_path, map_location=device))
+        print("Model loaded successfully!")
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        print("Attempting to load with weights_only=True...")
+        try:
+            model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
+            print("Model loaded successfully with weights_only=True!")
+        except Exception as e2:
+            print(f"Failed to load model: {e2}")
+            return None
+    
+    model.to(device)
+    model.eval()
+    model_loaded = True
+    return model
 
 # Image preprocessing
 transform = transforms.Compose([
@@ -145,6 +157,11 @@ def predict():
         return jsonify({'error': 'No image selected'}), 400
     
     try:
+        # Load model on first prediction
+        current_model = load_model()
+        if current_model is None:
+            return jsonify({'error': 'Failed to load model'}), 500
+        
         # Read and preprocess the image
         image_bytes = file.read()
         image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
@@ -154,7 +171,7 @@ def predict():
         
         # Make prediction
         with torch.no_grad():
-            outputs = model(input_tensor)
+            outputs = current_model(input_tensor)
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
             confidence, predicted = torch.max(probabilities, 1)
             

@@ -1,6 +1,7 @@
+--index-url https://download.pytorch.org/whl/cpu
+torch==2.0.1
 flask==3.0.0
 flask-cors==4.0.0
-torch==2.0.1
 torchvision==0.15.2
 timm==0.9.12
 Pillow==11.0.0
