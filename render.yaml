@@ -3,14 +3,10 @@ services:
     name: tomato-disease-api
     env: python
     plan: free
-    pythonVersion: 3.11
+    pythonVersion: "3.11"
     buildCommand: >
-      apt-get update &&
-      apt-get install -y git-lfs &&
+      curl https://pyenv.run | bash &&
       git lfs pull &&
-      pip install --upgrade pip &&
+      pip install --upgrade pip setuptools wheel &&
       pip install -r requirements.txt
     startCommand: gunicorn --bind 0.0.0.0:$PORT app:app
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11
