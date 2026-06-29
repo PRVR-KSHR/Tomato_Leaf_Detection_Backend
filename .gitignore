@@ -36,9 +36,9 @@ env/
 .env
 .env.local
 
-# Large model files - Use Git LFS or cloud storage
-*.pth
-*.pt
+# Large model files - hosted on Hugging Face
+# *.pth
+# *.pt
 *.onnx
 *.pkl
 *.pickle

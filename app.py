@@ -7,6 +7,7 @@ from PIL import Image
 import io
 import os
 import timm
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -111,8 +112,26 @@ def load_model():
     print("Loading ViTAgriNet model...")
     model = ViTAgriNet(num_classes=4, pretrained=False)
     
-    # Load the trained weights (model file should be in same directory as app.py)
     model_path = os.path.join(os.path.dirname(__file__), 'ViTAgriNet_best.pth')
+    
+    if not os.path.exists(model_path):
+        hf_url = os.environ.get('HF_MODEL_URL')
+        if hf_url:
+            print(f"Downloading model from Hugging Face: {hf_url}")
+            try:
+                response = requests.get(hf_url, stream=True)
+                response.raise_for_status()
+                with open(model_path, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                print("Model downloaded successfully!")
+            except Exception as e:
+                print(f"Error downloading model: {e}")
+                return None
+        else:
+            print("Model file not found and HF_MODEL_URL not set")
+            return None
+    
     try:
         model.load_state_dict(torch.load(model_path, map_location=device))
         print("Model loaded successfully!")
