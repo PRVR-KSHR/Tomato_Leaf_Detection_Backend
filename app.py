@@ -143,17 +143,17 @@ def load_model():
         model.load_state_dict(torch.load(model_path, map_location=device))
         print("Model loaded successfully!")
     except Exception as e:
-        print(f"Error loading model: {e}")
-        print("Attempting to load with weights_only=True...")
-        try:
-            model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
-            print("Model loaded successfully with weights_only=True!")
-        except Exception as e2:
-            print(f"Failed to load model: {e2}")
-            return None
+        print(f"Failed to load model: {e}")
+        return None
+    
+    model.eval()
+    try:
+        model = torch.quantization.quantize_dynamic(model, {nn.Linear}, dtype=torch.qint8)
+        print("Model quantized to INT8 for lower memory usage!")
+    except Exception as e:
+        print(f"Quantization failed, using original model: {e}")
     
     model.to(device)
-    model.eval()
     model_loaded = True
     return model
 
