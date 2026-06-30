@@ -114,10 +114,10 @@ def load_model():
     
     model_path = os.path.join(os.path.dirname(__file__), 'ViTAgriNet_best.pth')
     
-    if not os.path.exists(model_path):
+    if not os.path.exists(model_path) or os.path.getsize(model_path) < 1_000_000:
         hf_url = os.environ.get('HF_MODEL_URL')
-        if hf_url:
-            print(f"Downloading model from Hugging Face: {hf_url}")
+        if hf_url and hf_url != 'https://huggingface.co/your-username/your-repo/resolve/main/ViTAgriNet_best.pth':
+            print(f"Model file missing or too small ({os.path.getsize(model_path) if os.path.exists(model_path) else 0} bytes). Downloading from Hugging Face: {hf_url}")
             try:
                 response = requests.get(hf_url, stream=True, timeout=600)
                 response.raise_for_status()
