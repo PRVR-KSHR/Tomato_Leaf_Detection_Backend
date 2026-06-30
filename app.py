@@ -114,6 +114,9 @@ def load_model():
     
     model_path = os.path.join(os.path.dirname(__file__), 'ViTAgriNet_best.pth')
     
+    import subprocess
+    subprocess.run(['git', 'lfs', 'pull'], capture_output=True, text=True)
+    
     if not os.path.exists(model_path) or os.path.getsize(model_path) < 1_000_000:
         hf_url = os.environ.get('HF_MODEL_URL')
         if hf_url and hf_url != 'https://huggingface.co/your-username/your-repo/resolve/main/ViTAgriNet_best.pth':
