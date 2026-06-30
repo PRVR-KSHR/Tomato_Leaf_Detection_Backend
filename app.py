@@ -134,6 +134,9 @@ def load_model():
             raise RuntimeError("Model file not found and HF_MODEL_URL not set")
     
     try:
+        model.load_state_dict(torch.load(model_path, map_location=device, mmap=True))
+        print("Model loaded successfully!")
+    except TypeError:
         model.load_state_dict(torch.load(model_path, map_location=device))
         print("Model loaded successfully!")
     except Exception as e:
