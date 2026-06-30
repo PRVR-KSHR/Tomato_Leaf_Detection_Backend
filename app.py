@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for frontend communication
+CORS(app, origins=["https://vit-agrinet.netlify.app", "http://localhost:5000", "http://localhost:3000"])
 
 # Define the disease classes (alphabetical order - common in PyTorch datasets)
 CLASSES = ['Early Blight', 'Healthy', 'Late Blight', 'Septoria']
@@ -119,18 +119,19 @@ def load_model():
         if hf_url:
             print(f"Downloading model from Hugging Face: {hf_url}")
             try:
-                response = requests.get(hf_url, stream=True)
+                response = requests.get(hf_url, stream=True, timeout=600)
                 response.raise_for_status()
                 with open(model_path, 'wb') as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                print("Model downloaded successfully!")
+                    for chunk in response.iter_content(chunk_size=65536):
+                        if chunk:
+                            f.write(chunk)
+                print(f"Model downloaded successfully! Size: {os.path.getsize(model_path)} bytes")
             except Exception as e:
                 print(f"Error downloading model: {e}")
-                return None
+                raise RuntimeError(f"Failed to download model: {e}")
         else:
             print("Model file not found and HF_MODEL_URL not set")
-            return None
+            raise RuntimeError("Model file not found and HF_MODEL_URL not set")
     
     try:
         model.load_state_dict(torch.load(model_path, map_location=device))
@@ -214,7 +215,11 @@ def predict():
 
 @app.route('/health', methods=['GET'])
 def health():
-    return jsonify({'status': 'healthy', 'model_loaded': True})
+    return jsonify({'status': 'healthy', 'model_loaded': model_loaded})
+
+@app.route('/ready', methods=['GET'])
+def ready():
+    return jsonify({'ready': True})
 
 if __name__ == '__main__':
     print(f"Using device: {device}")

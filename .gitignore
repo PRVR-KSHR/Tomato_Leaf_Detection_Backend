@@ -37,8 +37,8 @@ env/
 .env.local
 
 # Large model files - hosted on Hugging Face
-# *.pth
-# *.pt
+*.pth
+*.pt
 *.onnx
 *.pkl
 *.pickle
